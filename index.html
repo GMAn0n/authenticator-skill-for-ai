@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2FA Authenticator Skill for AI — Two-Factor Authentication (TOTP/HOTP) for AI Agents</title>
+<meta name="description" content="Give your AI agent two-factor authentication. A free, open-source skill that lets AI agents (Muse, Grok, ChatGPT, Claude, Gemini) hold TOTP/HOTP 2FA seeds locally and generate codes on demand. Imports Google Authenticator migration QRs, andOTP, Aegis, 2FAS, Bitwarden, Ente, Proton, KeePassXC and Steam exports.">
+<meta name="keywords" content="two-factor authentication, 2FA, TOTP, HOTP, one-time password, OTP, authenticator skill, AI agents, Muse, Muse skills, Grok, xAI, ChatGPT, OpenAI, Claude, Anthropic, Gemini, Google Authenticator, migration QR, agent skills, sign-in automation, Steam Guard">
+<meta name="author" content="Sam Clark">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://gman0n.github.io/authenticator-skill-for-ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="2FA Authenticator Skill for AI">
+<meta property="og:title" content="2FA Authenticator Skill for AI — Two-Factor Authentication for AI Agents">
+<meta property="og:description" content="Let your AI agent generate its own TOTP/HOTP 2FA codes. Imports Google Authenticator migration QRs and exports from andOTP, Aegis, 2FAS, Bitwarden, Ente, Proton, KeePassXC and Steam. Free, open source, local-only.">
+<meta property="og:url" content="https://gman0n.github.io/authenticator-skill-for-ai/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2FA Authenticator Skill for AI — TOTP/HOTP for AI Agents">
+<meta name="twitter:description" content="Give Muse, Grok, ChatGPT, Claude or Gemini local two-factor authentication: import your authenticator once, generate 2FA codes on demand. Open source.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "2FA Authenticator Skill for AI",
+  "alternateName": "Two-Factor Authentication Skill for AI Agents",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "url": "https://gman0n.github.io/authenticator-skill-for-ai/",
+  "downloadUrl": "https://github.com/GMAn0n/authenticator-skill-for-ai",
+  "softwareVersion": "1.0",
+  "description": "An open-source skill that gives AI agents local two-factor authentication: TOTP/HOTP seed storage and code generation, Google Authenticator migration QR import, and universal export-file import from andOTP, Aegis, 2FAS, Bitwarden, Ente, Proton, KeePassXC and Steam.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Sam Clark" },
+  "license": "https://opensource.org/licenses/MIT",
+  "keywords": "two-factor authentication, 2FA, TOTP, HOTP, AI agents, Muse, Grok, ChatGPT, Claude, Gemini"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the 2FA Authenticator Skill for AI?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It is a small open-source skill — one Python command-line tool plus instructions — that lets an AI agent hold your two-factor authentication seeds locally and generate TOTP and HOTP codes on demand. Sign-ins the agent runs for you stop stalling on 'enter the 6-digit code from your phone', because the agent can generate the same code your authenticator app would." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which authenticator apps can I import from?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Directly: Google Authenticator (transfer/migration QR photo, or single enrollment QRs), andOTP and FreeOTP+ (plain JSON backup), Aegis (plain-text JSON vault), 2FAS (plain backup), Bitwarden and Bitwarden Authenticator (vault JSON or CSV), Ente Auth and Raivo (otpauth text list), Proton Authenticator and Proton Pass (JSON export), KeePassXC (CSV), and Steam Guard (steam:// links and maFiles). Any single enrollment QR, otpauth:// URI, or base32, base64 or hex setup key from any service also works." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why can't I import from Microsoft Authenticator or Authy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because those vendors offer no export at all — to anyone. Microsoft Authenticator's cloud backup restores only into Microsoft Authenticator on the same platform, and Microsoft-account entries are proprietary push sign-in, not TOTP. Authy syncs only into Authy, encrypted, with no export. The workaround is per-service re-enrollment: disable 2FA at the service, re-enable it, and capture the setup QR into both your phone app and this skill's store. From then on both generate identical codes." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to let an AI agent hold my 2FA seeds?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The skill is built for it: seeds live only in ~/.authenticator/seeds.json with 0700 directory and 0600 file permissions, no command ever prints a seed, codes are computed locally with the Python standard library, and nothing is sent to a server. The skill also instructs the agent to generate a code only for a sign-in you have authorized. The honest trade-off: storing seeds where your agent can reach them concentrates password and 2FA in one stack — the same model as a password manager holding both — so protect the host accordingly." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which AI agents can use this skill?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Muse loads it natively as a skill. Grok, ChatGPT, Gemini, Claude, Claude Code, Cursor, Copilot and other agents can use it too: there is no platform SDK — any agent with shell and file access can run the CLI. For agents without a native skills system, the repo includes a ready-to-paste system-prompt snippet and CLAUDE.md / AGENTS.md snippets. A chat-only session with no shell or file access cannot store seeds or run the tool." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install it?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Three steps: (1) copy the authenticator/ folder from the GitHub repo into your agent's skills directory or workspace; (2) run pip install --user pillow zxing-cpp for QR photo scanning (seed, URI and file imports need only the Python standard library); (3) enroll with python3 authenticator/bin/auth.py import --qr <photo of your Google Authenticator transfer QR> — then python3 authenticator/bin/auth.py code <label> generates codes." }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to install the 2FA Authenticator Skill for AI",
+  "description": "Install the two-factor authentication skill so your AI agent can generate TOTP/HOTP 2FA codes locally.",
+  "totalTime": "PT5M",
+  "step": [
+    { "@type": "HowToStep", "position": 1, "name": "Copy the skill folder", "text": "Download the repository from GitHub and copy the authenticator/ folder into your agent's skills directory or workspace." },
+    { "@type": "HowToStep", "position": 2, "name": "Install the QR decoder", "text": "Run: pip install --user pillow zxing-cpp — needed only for QR photo intake; seed, URI and export-file imports use only the Python standard library." },
+    { "@type": "HowToStep", "position": 3, "name": "Import your authenticator", "text": "Run: python3 authenticator/bin/auth.py import --qr <photo> with a photo of your Google Authenticator Transfer accounts QR to import every account at once, or import an export file with --file. Then generate codes with: python3 authenticator/bin/auth.py code <label>." }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gman0n.github.io/authenticator-skill-for-ai/" }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "2FA Authenticator Skill for AI — Two-Factor Authentication for AI Agents",
+  "url": "https://gman0n.github.io/authenticator-skill-for-ai/",
+  "speakable": {
+    "@type": "SpeakableSpecification",
+    "cssSelector": ["h1", "#what", "#faq"]
+  }
+}
+</script>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.6; margin: 0; color: #1a1a2e; background: #f7f8fc; }
+  header, main, footer { max-width: 860px; margin: 0 auto; padding: 1.5rem 1.25rem; }
+  header { text-align: center; padding-top: 3rem; }
+  h1 { font-size: 2.2rem; line-height: 1.2; margin-bottom: .5rem; }
+  h2 { margin-top: 2.25rem; }
+  .sub { font-size: 1.15rem; opacity: .85; }
+  .cta { display: inline-block; margin: 1rem .35rem 0; padding: .7rem 1.4rem; border-radius: 8px; background: #2f4bff; color: #fff; text-decoration: none; font-weight: 600; }
+  .cta.secondary { background: transparent; color: #2f4bff; border: 2px solid #2f4bff; }
+  section, article { background: #fff; border-radius: 12px; padding: 1.25rem 1.5rem; margin-top: 1.25rem; box-shadow: 0 1px 4px rgba(20,20,60,.08); }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid #e3e6f0; }
+  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: #10142b; color: #e8ebff; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+  dt { font-weight: 700; margin-top: 1.1rem; }
+  dd { margin: .35rem 0 0 0; }
+  footer { text-align: center; opacity: .8; font-size: .9rem; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0d1020; color: #e8ebff; }
+    section, article { background: #171b33; box-shadow: none; }
+    th, td { border-color: #2a3054; }
+    .cta.secondary { color: #9db2ff; border-color: #9db2ff; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>2FA Authenticator Skill for AI</h1>
+  <p class="sub">Two-Factor Authentication (TOTP / HOTP) for AI Agents — Muse, Grok, ChatGPT, Claude, Gemini</p>
+  <p>Give your AI agent the ability to generate its own two-factor authentication codes: import your authenticator once, and sign-ins stop stalling on a code from your phone.</p>
+  <a class="cta" href="https://github.com/GMAn0n/authenticator-skill-for-ai">Get it on GitHub</a>
+  <a class="cta secondary" href="#install">How to install</a>
+</header>
+
+<main>
+  <section id="what">
+    <h2>What it is</h2>
+    <p>The <strong>Two-Factor Authentication Skill for AI Agents</strong> is a free, open-source skill built around one small Python command-line tool. It stores your 2FA seeds locally — in <code>~/.authenticator/seeds.json</code>, permissions <code>0600</code> — and generates the same rotating 6-digit codes your authenticator app does, using the open standards <strong>RFC 4226 (HOTP)</strong> and <strong>RFC 6238 (TOTP)</strong>. The OTP math is pure Python standard library; nothing is sent to a server, and no command ever prints a seed.</p>
+    <p>It supports TOTP and HOTP with SHA1, SHA256, SHA512 and MD5, 6-, 7- and 8-digit codes, custom periods, HOTP counters, and Steam Guard's 5-character codes. Seeds can arrive as an enrollment QR photo, an <code>otpauth://</code> or <code>steam://</code> URI, a base32 / base64 / hex setup key, a Google Authenticator migration QR, or an export file from another authenticator app.</p>
+  </section>
+
+  <section id="compatibility">
+    <h2>Authenticator app compatibility</h2>
+    <table>
+      <thead><tr><th>Source app</th><th>Import path</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Google Authenticator</td><td>Transfer-accounts migration QR photo</td><td>✅ Direct</td></tr>
+        <tr><td>andOTP, FreeOTP+</td><td>Plain JSON backup</td><td>✅ Direct</td></tr>
+        <tr><td>Aegis</td><td>Plain-text JSON vault export</td><td>✅ Direct</td></tr>
+        <tr><td>2FAS</td><td>Plain .2fas / JSON backup</td><td>✅ Direct</td></tr>
+        <tr><td>Bitwarden / Bitwarden Authenticator</td><td>Vault JSON or CSV</td><td>✅ Direct</td></tr>
+        <tr><td>Ente Auth, Raivo</td><td>Plain-text otpauth:// list</td><td>✅ Direct</td></tr>
+        <tr><td>Proton Authenticator / Proton Pass</td><td>JSON export</td><td>✅ Direct</td></tr>
+        <tr><td>KeePassXC</td><td>CSV export</td><td>✅ Direct (basic)</td></tr>
+        <tr><td>Steam Guard</td><td>steam:// link or maFile JSON</td><td>✅ Direct</td></tr>
+        <tr><td>Microsoft Authenticator</td><td>No export exists</td><td>⚠️ Locked in — re-enroll per service</td></tr>
+        <tr><td>Authy (Twilio)</td><td>No export exists</td><td>⚠️ Locked in — re-enroll per service</td></tr>
+        <tr><td>Duo Mobile, Okta Verify, Salesforce Authenticator</td><td>Device-bound push accounts</td><td>⚠️ Locked in</td></tr>
+        <tr><td>Yubico Authenticator</td><td>Seeds stay on the hardware key</td><td>⚠️ Cannot be extracted</td></tr>
+        <tr><td>RSA SecurID</td><td>Proprietary format</td><td>❌ Not TOTP</td></tr>
+      </tbody>
+    </table>
+    <p>Encrypted exports (password-protected Aegis, 2FAS or andOTP backups) are detected and refused with the exact plain re-export to make — never a silent failure. Locked-in apps are a vendor restriction, not a limitation of this skill; the FAQ below gives the re-enrollment workaround.</p>
+  </section>
+
+  <section id="install">
+    <h2>Install in 3 steps</h2>
+    <ol>
+      <li><strong>Copy the skill folder</strong> — download the repository and copy <code>authenticator/</code> into your agent's skills directory or workspace.</li>
+      <li><strong>Install the QR decoder</strong> (photo intake only; everything else is standard library):
+        <pre>pip install --user pillow zxing-cpp</pre></li>
+      <li><strong>Import your authenticator</strong> — one Google Authenticator transfer QR photo enrolls everything:
+        <pre>python3 authenticator/bin/auth.py import --qr ~/transfer-qr-photo.jpg
+python3 authenticator/bin/auth.py list
+python3 authenticator/bin/auth.py code github</pre></li>
+    </ol>
+    <p>On <strong>Muse</strong>, the skill loads natively. On <strong>Grok, ChatGPT, Gemini, Claude Code, Cursor</strong> and other agents there is no native skills system — the repository's <a href="https://github.com/GMAn0n/authenticator-skill-for-ai/blob/main/INSTALL-OTHER-AGENTS.md">guide for other AI agents</a> includes a ready-to-paste system-prompt snippet; any agent with shell and file access can run the same CLI.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security model</h2>
+    <p>Seeds are credentials and are treated like them: a single local store with <code>0700</code>/<code>0600</code> permissions in the user's home directory, no seed ever printed by any command (covered by the test suite), codes computed entirely on-device, and a built-in consent rule — the agent generates a code only for a sign-in the user has authorized. Holding the codes is not standing permission to sign in anywhere new.</p>
+  </section>
+
+  <article id="faq">
+    <h2>Frequently asked questions</h2>
+    <dl>
+      <dt>What is the 2FA Authenticator Skill for AI?</dt>
+      <dd>It is a small open-source skill — one Python command-line tool plus instructions — that lets an AI agent hold your two-factor authentication seeds locally and generate TOTP and HOTP codes on demand. Sign-ins the agent runs for you stop stalling on "enter the 6-digit code from your phone", because the agent can generate the same code your authenticator app would.</dd>
+
+      <dt>Which authenticator apps can I import from?</dt>
+      <dd>Directly: Google Authenticator (transfer/migration QR photo, or single enrollment QRs), andOTP and FreeOTP+ (plain JSON backup), Aegis (plain-text JSON vault), 2FAS (plain backup), Bitwarden and Bitwarden Authenticator (vault JSON or CSV), Ente Auth and Raivo (otpauth text list), Proton Authenticator and Proton Pass (JSON export), KeePassXC (CSV), and Steam Guard (steam:// links and maFiles). Any single enrollment QR, otpauth:// URI, or base32, base64 or hex setup key from any service also works.</dd>
+
+      <dt>Why can't I import from Microsoft Authenticator or Authy?</dt>
+      <dd>Because those vendors offer no export at all — to anyone. Microsoft Authenticator's cloud backup restores only into Microsoft Authenticator on the same platform, and Microsoft-account entries are proprietary push sign-in, not TOTP. Authy syncs only into Authy, encrypted, with no export. The workaround is per-service re-enrollment: disable 2FA at the service, re-enable it, and capture the setup QR into both your phone app and this skill's store. From then on both generate identical codes.</dd>
+
+      <dt>Is it safe to let an AI agent hold my 2FA seeds?</dt>
+      <dd>The skill is built for it: seeds live only in ~/.authenticator/seeds.json with 0700 directory and 0600 file permissions, no command ever prints a seed, codes are computed locally with the Python standard library, and nothing is sent to a server. The skill also instructs the agent to generate a code only for a sign-in you have authorized. The honest trade-off: storing seeds where your agent can reach them concentrates password and 2FA in one stack — the same model as a password manager holding both — so protect the host accordingly.</dd>
+
+      <dt>Which AI agents can use this skill?</dt>
+      <dd>Muse loads it natively as a skill. Grok, ChatGPT, Gemini, Claude, Claude Code, Cursor, Copilot and other agents can use it too: there is no platform SDK — any agent with shell and file access can run the CLI. For agents without a native skills system, the repo includes a ready-to-paste system-prompt snippet and CLAUDE.md / AGENTS.md snippets. A chat-only session with no shell or file access cannot store seeds or run the tool.</dd>
+
+      <dt>How do I install it?</dt>
+      <dd>Three steps: (1) copy the authenticator/ folder from the GitHub repo into your agent's skills directory or workspace; (2) run pip install --user pillow zxing-cpp for QR photo scanning (seed, URI and file imports need only the Python standard library); (3) enroll with python3 authenticator/bin/auth.py import --qr &lt;photo of your Google Authenticator transfer QR&gt; — then python3 authenticator/bin/auth.py code &lt;label&gt; generates codes.</dd>
+    </dl>
+  </article>
+</main>
+
+<footer>
+  <p>2FA Authenticator Skill for AI · MIT License · Copyright © 2026 Sam Clark ·
+  <a href="https://github.com/GMAn0n/authenticator-skill-for-ai">GitHub repository</a></p>
+</footer>
+</body>
+</html>

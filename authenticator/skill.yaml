@@ -1,0 +1,6 @@
+name: authenticator_skill
+title: 2FA Authenticator Skill for AI
+description: 'Give your AI agent two-factor authentication: hold the user''s TOTP/HOTP seeds locally and generate 2FA codes on demand. Enroll once from a setup key, an otpauth:// URI, a QR photo, a Google Authenticator migration QR, or an export file from andOTP, Aegis, 2FAS, Bitwarden, Ente, Proton, KeePassXC or Steam. Seeds stay in ~/.authenticator/seeds.json (0600) and codes are computed locally with the Python standard library. Use when a sign-in the agent is running for the user needs a 2FA code, or when the user asks to enroll an account''s 2FA, import an authenticator export, list enrolled accounts, or get a code.'
+include_in_prompt: true
+availability:
+  needs_speech: false

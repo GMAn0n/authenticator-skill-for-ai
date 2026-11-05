@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gman0n.github.io/authenticator-skill-for-ai/sitemap.xml
